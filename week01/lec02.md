@@ -43,9 +43,9 @@ else if (money < 0)     printf("you're in debt");
 else                    printf("you've got money\n");
 ```
 
-11: you've got money
--11: you're in debt
-0: you've got money
+- 11: you've got money
+- -11: you're in debt
+- 0: you've got money
 
 *What is output by this code when the date is 10/31?*
 
@@ -93,7 +93,7 @@ void someFunction() {
 }
 ```
 
-### Aspect of a Variable
+- ### Aspects of a Variable
 
 idenitifier:    name
 value:          data stored
