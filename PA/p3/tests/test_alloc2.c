@@ -1,0 +1,16 @@
+// a few allocations in multiples of 4 bytes
+#include <assert.h>
+#include <stdlib.h>
+#include "p3Heap.h"
+
+int main() {
+   assert(init_heap(4096) == 0);
+   assert(balloc(4) != NULL);
+   assert(balloc(8) != NULL);
+   assert(balloc(16) != NULL);
+   assert(balloc(24) != NULL);
+
+   disp_heap();
+
+   exit(0);
+}

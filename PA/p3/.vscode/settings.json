@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.ejs": "html",
+        "__functional_03": "c",
+        "functional": "c"
+    }
+}
