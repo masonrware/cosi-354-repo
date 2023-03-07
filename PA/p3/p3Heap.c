@@ -60,20 +60,12 @@ typedef struct blockHeader
      */
 } blockHeader;
 
-/* Global variable - DO NOT CHANGE NAME or TYPE.
- * It must point to the first block in the heap and is set by init_heap()
- * i.e., the block at the lowest address.
+/*
+ * Global variables
  */
 blockHeader *heap_start = NULL;
-
-/* Size of heap allocation padded to round to nearest page size.
- */
+blockHeader *end_mark = NULL;
 int alloc_size;
-
-/*
- * Additional global variables may be added as needed below
- * TODO: add global variables needed by your function
- */
 
 /*
  * This is a best fit algorithm for finding the best fit block
@@ -175,6 +167,7 @@ void *balloc(int size)
 
     alloc_size = alloc_size + padsize;
 
+    // returns pointer to HEADER
     blockHeader *bestFitBlock = bestFit();
 
     if (bestFitBlock == NULL)
@@ -193,26 +186,45 @@ void *balloc(int size)
         old_block_size -= 2;
     }
 
-    // compare the raw sizes
+    // compare the raw sizes (can only be greater than or equal to thanks to bestFit())
     if (old_block_size > alloc_size && (old_block_size - alloc_size >= 8))
     {
+        // jump to next header
         target = (blockHeader *)((void *)bestFitBlock + alloc_size);
-        target->size_status = (old_block_size - alloc_size);
+        if (target->size_status != 1)
+        {
+            target->size_status = (old_block_size - alloc_size);
 
-        blockHeader *footer = ((void *)target + (target->size_status - 4)); 
-        footer->size_status = (old_block_size - alloc_size);
+            blockHeader *footer = ((void *)target + (target->size_status - 4));
+            footer->size_status = (old_block_size - alloc_size);
 
-        // indicate previous is alloc'd
-        target->size_status += 2;
+            // indicate previous is alloc'd
+            target->size_status += 2;
+        }
+    }
+    else
+    {
+        // need to reset the next header regardless, but not its size nor the footer
+        target = (blockHeader *)((void *)bestFitBlock + alloc_size);
+        if (target->size_status != 1)
+        {
+            // indicate previous is alloc'd
+            target->size_status += 2;
+        }
     }
 
-    // TODO p bit?
+    // check what the p-bit was and copy it over
+    if (bestFitBlock->size_status & 2)
+    {
+        alloc_size += 2;
+    }
+
     // reset current size
     bestFitBlock->size_status = alloc_size;
+    // (bestFitBlock->size_status | alloc_size)
+
     // indicate it is alloc'd
     bestFitBlock->size_status += 1;
-    // arbitrarily set p-bit for it to be freed in bfree()
-    bestFitBlock->size_status += 2;
 
     return (blockHeader *)((void *)bestFitBlock + 4);
 }
@@ -231,12 +243,24 @@ void *balloc(int size)
  */
 int bfree(void *ptr)
 {
-    // If ptr is NULL,
-    // ptr is not 8 byte aligned,
-    // not within the range of memory allocated by init_heap(),
-    // or points to a free block then this function just returns -1
-
+    // if pointer is NULL
     if (ptr == NULL)
+    {
+        return -1;
+    }
+    unsigned int alignment = (unsigned int)(ptr);
+    // if pointer is not 8 byte aligned
+    if (alignment % 8 != 0)
+    {
+        return -1;
+    }
+    // if pointer is outside the range of memory allocated by init_heap()
+    else if ((unsigned int)ptr < (unsigned int)heap_start || (unsigned int)ptr >= (unsigned int)end_mark)
+    {
+        return -1;
+    }
+    // if the pointer points to a free block
+    else if (!((((blockHeader *)(ptr - 4))->size_status) & 1))
     {
         return -1;
     }
@@ -244,7 +268,8 @@ int bfree(void *ptr)
     // go to the header of the block to be deleted
     blockHeader *target = ptr - 4;
 
-    int target_size = target->size_status;
+    // take out the size of the header
+    int target_size = target->size_status - 4;
 
     if (target_size & 1)
     {
@@ -258,10 +283,11 @@ int bfree(void *ptr)
     // indicate it is freed
     target->size_status -= 1;
 
-    blockHeader *footer = ((void *)target + (target_size - 4));
+    blockHeader *footer = (ptr + (target_size - 4));
     footer->size_status = target_size;
 
-    blockHeader *next_header = ((void *)target + target_size);
+    blockHeader *next_header = (ptr + target_size);
+
     // if not the end
     if (next_header->size_status != 1)
     {
@@ -281,8 +307,48 @@ int bfree(void *ptr)
  */
 int coalesce()
 {
-    // TODO: Your code goes in here.
-    return 0;
+    int coalesced_blocks, curr_size = 0;
+
+    blockHeader *current = heap_start;
+
+    while (current->size_status != 1)
+    {
+        // if the current block is free and the previous is free
+        if (!(curr_size & 1) && !(curr_size & 2))
+        {
+            blockHeader *prev_footer = ((void *)current - 4);
+            blockHeader *prev_header = ((void *)current - (prev_footer->size_status));
+
+            prev_header->size_status += curr_size;
+            int cleaned_size = prev_header->size_status + curr_size;
+            if (cleaned_size & 1) {
+                cleaned_size -= 1;
+            }
+            if (cleaned_size & 2) {
+                cleaned_size -= 2;
+            }
+
+            blockHeader *footer = ((void *)current + (curr_size - 4));
+            footer->size_status = cleaned_size;
+            
+            coalesced_blocks += 1;
+        }
+        else
+        {
+            if (curr_size & 1)
+            {
+                curr_size -= 1;
+            }
+            if (curr_size & 2)
+            {
+                curr_size -= 2;
+            }
+        }
+
+        current = (blockHeader *)((char *)current + curr_size);
+    }
+
+    return coalesced_blocks;
 }
 
 /*
@@ -301,8 +367,6 @@ int init_heap(int sizeOfRegion)
     int padsize;    // size of padding when heap size not a multiple of page size
     void *mmap_ptr; // pointer to memory mapped area
     int fd;
-
-    blockHeader *end_mark;
 
     if (0 != allocated_once)
     {

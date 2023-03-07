@@ -229,7 +229,7 @@ answer: pointer to a pointer
 
    You access arrays using an identifier and index
 
-   allocated as a contiguous block of fized size memory on the stack
+   allocated as a contiguous block of fixed size memory on the stack
 
 - Declaring and Defining 1D Arrays:
 
@@ -800,7 +800,7 @@ structures can contain other structs and arrays nested as deeply as you wish.
    `00000000000000000000000000000000=0x00000000` this is the address for the reserved section
 
    the magic number = `0x08048000`
-   is the base that when added with the canary yields the starting address of your code
+   is the base that when added with the *canary* yields the starting address of your code
    this is the starting address of the code segment of your programs virtual memory
 
 - **address space**:
