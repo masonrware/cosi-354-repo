@@ -1,8 +1,0 @@
-Script started on 2023-02-08 16:55:11-06:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="99" LINES="45"]
-[?2004h]0;mware@vm-instunix-10: ~/private/CS_354/p2a[01;32mmware@vm-instunix-10[00m:[01;34m~/private/CS_354/p2a[00m$ [7mgcc check_board.c -Wall -m32 -std=gnu99 -o check_board[27m[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cgcc check_board.c -Wall -m32 -std=gnu99 -o check_board
-[?2004l[?2004h]0;mware@vm-instunix-10: ~/private/CS_354/p2a[01;32mmware@vm-instunix-10[00m:[01;34m~/private/CS_354/p2a[00m$ [7m./check_board board1.txt[27m./check_board board1.txt
-[?2004lvalid
-[?2004h]0;mware@vm-instunix-10: ~/private/CS_354/p2a[01;32mmware@vm-instunix-10[00m:[01;34m~/private/CS_354/p2a[00m$ [7mexit[27mexit
-[?2004lexit
-
-Script done on 2023-02-08 16:55:26-06:00 [COMMAND_EXIT_CODE="0"]

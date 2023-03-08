@@ -29,6 +29,7 @@ int main() {
    ptr[2] = balloc(1200);
    assert(ptr[2] == NULL);
 
+  disp_heap();
    coalesce();
 
    ptr[2] = balloc(1600);

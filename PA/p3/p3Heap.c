@@ -284,7 +284,7 @@ int bfree(void *ptr)
     target->size_status -= 1;
 
     blockHeader *footer = (ptr + (target_size - 4));
-    footer->size_status = target_size;
+    footer->size_status = target_size + 4;
 
     blockHeader *next_header = (ptr + target_size);
 
@@ -313,6 +313,8 @@ int coalesce()
 
     while (current->size_status != 1)
     {
+        curr_size = current->size_status;
+
         // if the current block is free and the previous is free
         if (!(curr_size & 1) && !(curr_size & 2))
         {
@@ -321,16 +323,18 @@ int coalesce()
 
             prev_header->size_status += curr_size;
             int cleaned_size = prev_header->size_status + curr_size;
-            if (cleaned_size & 1) {
+            if (cleaned_size & 1)
+            {
                 cleaned_size -= 1;
             }
-            if (cleaned_size & 2) {
+            if (cleaned_size & 2)
+            {
                 cleaned_size -= 2;
             }
 
             blockHeader *footer = ((void *)current + (curr_size - 4));
-            footer->size_status = cleaned_size;
-            
+            footer->size_status = cleaned_size - curr_size;
+
             coalesced_blocks += 1;
         }
         else
